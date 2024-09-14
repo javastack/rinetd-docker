@@ -1,0 +1,39 @@
+name: Build Docker using Shared Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run'
+        type: boolean
+        required: true
+        default: true
+  schedule:
+    - cron: '5 20 * * 2' # Runs at 20:05, only on Tuesday
+
+concurrency:
+  group: ${{ github.repository }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  call-shared-workflow:
+    uses: ggrandes/shared-workflows/.github/workflows/docker.yml@v1
+    with:
+      dry_run: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
+      platforms: |
+        linux/amd64
+        linux/386
+        linux/arm64
+        linux/arm/v7
+        linux/arm/v6
+        linux/riscv64
+        linux/ppc64le
+        linux/s390x
+    secrets:
+      DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+# END #
